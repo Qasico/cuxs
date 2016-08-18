@@ -4,29 +4,27 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+	"github.com/qasico/cuxs/response"
 )
 
-type ResponseFormat struct {
-	Code    int           `json:"code,omitempty";xml:"code,omitempty"`
-	Message interface{}   `json:"message,omitempty";xml:"message,omitempty"`
-}
-
 func HTTPHandler(err error, c echo.Context) {
-	var r ResponseFormat
+	var r response.Attribute
 
-	r.Code = http.StatusInternalServerError
-	r.Message = http.StatusText(r.Code)
+	code := response.StatusInternalServerError
+
+	r.Status = response.StatusFailed
+	r.Message = http.StatusText(code)
 
 	if he, ok := err.(*echo.HTTPError); ok {
-		r.Code = he.Code
+		code = he.Code
 		r.Message = he.Message
 	}
 
 	if !c.Response().Committed() {
 		if c.Request().Method() == "HEAD" {
-			c.NoContent(r.Code)
+			c.NoContent(code)
 		} else {
-			c.JSON(r.Code, r)
+			c.JSON(code, r)
 		}
 	}
 }
