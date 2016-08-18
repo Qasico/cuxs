@@ -9,6 +9,7 @@ import (
 	"strings"
 	"net/http"
 	"fmt"
+	"strconv"
 )
 
 type(
@@ -23,6 +24,17 @@ type(
 		RequestHandler  *RequestHandler
 		ResponseHandler *ResponseHandler
 		RequestInput    []string
+		QueryParam      *QueryParam
+	}
+
+	QueryParam struct {
+		Count  bool
+		Sort   string
+		Offset int
+		Limit  int
+		Id     []string
+		Field  []string
+		Embed  []string
 	}
 )
 
@@ -39,6 +51,10 @@ func (h *Handler) Prepare(c echo.Context, req RequestHandler) (hr *Handler, err 
 		if err = h.validateRequest(req); err == nil {
 			h.RequestHandler = &req
 		}
+	}
+
+	if c.Request().Method() == "GET" {
+		h.setQueryParam(c)
 	}
 
 	ApiHandler = h
@@ -80,6 +96,55 @@ func (h *Handler) requestKeys(i interface{}) {
 	h.RequestInput = keys
 }
 
+func (h *Handler) setQueryParam(c echo.Context) {
+	qp := new(QueryParam)
+	qs := c.QueryParams()
+
+	if param, ok := qs["count"]; ok {
+		qp.Count, _ = strconv.ParseBool(param[0])
+	}
+
+	if param, ok := qs["embed"]; ok {
+		qp.Embed = strings.Split(param[0], ",")
+	}
+
+	if param, ok := qs["field"]; ok {
+		qp.Field = strings.Split(param[0], ",")
+	}
+
+	if param, ok := qs["id"]; ok {
+		qp.Id = strings.Split(param[0], ",")
+	}
+
+	if param, ok := qs["per_page"]; ok {
+		qp.Limit, _ = strconv.Atoi(param[0])
+	}
+
+	if param, ok := qs["page"]; ok {
+		limit := 10
+		page, _ := strconv.Atoi(param[0])
+
+		if qp.Limit != 0 {
+			limit = qp.Limit
+		}
+
+		qp.Offset = (page - 1) * limit
+	}
+
+	if param, ok := qs["sort"]; ok {
+		sort := param[0]
+		order := "asc"
+		if string(sort[0]) == "-" {
+			sort = strings.Replace(sort, "-", "", -1)
+			order = "desc"
+		}
+
+		qp.Sort = fmt.Sprintf("%s %s", sort, order)
+	}
+
+	h.QueryParam = qp
+}
+
 func (h *Handler) Serve(err error) error {
 	// check if errors has contain data
 	if len(h.Response.Errors) > 0 {
@@ -111,8 +176,4 @@ func SetErrorValidate(field string, message string) {
 	x := response.ErrorValidation{Field: strings.ToLower(field), Message: message}
 
 	ApiHandler.Response.Errors = append(ApiHandler.Response.Errors, x)
-}
-
-func GetInputKeys() []string {
-	return ApiHandler.RequestInput
 }
