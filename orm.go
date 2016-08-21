@@ -13,6 +13,7 @@ import (
 )
 
 var Orm  map[string]*gorm.DB
+var DB   *gorm.DB
 
 func init() {
 	Orm = make(map[string]*gorm.DB)
@@ -44,6 +45,7 @@ func NewDB(name interface{}) {
 	orm.SetLogger(log.OrmLogger{})
 
 	Orm[dbname] = orm
+	DB = orm
 }
 
 func openConnection(c DatabaseConfig, dbname string) (conn string) {
@@ -60,3 +62,4 @@ func openConnection(c DatabaseConfig, dbname string) (conn string) {
 func ORM() *gorm.DB {
 	return Orm[Config.DatabaseConfig.DBName]
 }
+
