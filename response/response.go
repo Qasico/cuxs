@@ -22,11 +22,8 @@ func (r *Attribute) SetCode(s int) *Attribute {
 	return r
 }
 
-func (r *Attribute) SetData(d interface{}, t int64) *Attribute {
+func (r *Attribute) SetData(d interface{}) *Attribute {
 	r.Data = d
-	if t != 0 {
-		r.Total = t
-	}
 
 	return r
 }

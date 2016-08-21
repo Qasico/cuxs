@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"fmt"
 	"strconv"
+	"reflect"
 )
 
 type(
@@ -67,7 +68,6 @@ func (h *Handler) validateRequest(req interface{}) (err error) {
 		h.ValidationError(err.(validator.ValidationErrors))
 	} else {
 		h.requestKeys(req)
-		fmt.Println("OK")
 	}
 
 	return
@@ -99,28 +99,30 @@ func (h *Handler) requestKeys(i interface{}) {
 func (h *Handler) setQueryParam(c echo.Context) {
 	qp := new(QueryParam)
 	qs := c.QueryParams()
+	qp.Limit = 10
+	qp.Offset = 0
 
-	if param, ok := qs["count"]; ok {
+	if param, ok := qs["count"]; ok && param[0] != "" {
 		qp.Count, _ = strconv.ParseBool(param[0])
 	}
 
-	if param, ok := qs["embed"]; ok {
+	if param, ok := qs["embed"]; ok && param[0] != "" {
 		qp.Embed = strings.Split(param[0], ",")
 	}
 
-	if param, ok := qs["field"]; ok {
+	if param, ok := qs["field"]; ok && param[0] != "" {
 		qp.Field = strings.Split(param[0], ",")
 	}
 
-	if param, ok := qs["id"]; ok {
+	if param, ok := qs["id"]; ok && param[0] != "" {
 		qp.Id = strings.Split(param[0], ",")
 	}
 
-	if param, ok := qs["per_page"]; ok {
+	if param, ok := qs["per_page"]; ok && param[0] != "" {
 		qp.Limit, _ = strconv.Atoi(param[0])
 	}
 
-	if param, ok := qs["page"]; ok {
+	if param, ok := qs["page"]; ok && param[0] != "" {
 		limit := 10
 		page, _ := strconv.Atoi(param[0])
 
@@ -131,7 +133,7 @@ func (h *Handler) setQueryParam(c echo.Context) {
 		qp.Offset = (page - 1) * limit
 	}
 
-	if param, ok := qs["sort"]; ok {
+	if param, ok := qs["sort"]; ok && param[0] != "" {
 		sort := param[0]
 		order := "asc"
 		if string(sort[0]) == "-" {
@@ -156,16 +158,81 @@ func (h *Handler) Serve(err error) error {
 			h.Response.SetMessage(err.Error())
 			h.Response.Data = nil
 		} else {
-			h.Response.SetCode(http.StatusOK)
+			if h.Response.Code > 300 {
+				h.Response.SetCode(http.StatusOK)
+			}
+
 			h.Response.Status = response.StatusSuccess
 			h.Response.Message = nil
+
 			if h.ResponseHandler != nil {
-				h.Response.SetData(h.ResponseHandler, 0)
+				h.Response.Data = h.ResponseHandler
 			}
+
+			h.FilterResponse()
 		}
 	}
 
 	return h.Context.JSON(h.Response.Code, h.Response)
+}
+
+func (h *Handler) FilterResponse() {
+	// run only GET requests
+	if h.Context.Request().Method() == "GET" && len(h.QueryParam.Field) > 0 && h.Response.Data != nil && h.Response.Status == response.StatusSuccess {
+		// filter the Response.Data
+		d := h.Response.Data
+		switch reflect.TypeOf(d).Kind() {
+		case reflect.Slice:
+			s := reflect.ValueOf(d)
+			var result []interface{}
+			for i := 0; i < s.Len(); i++ {
+				m := make(map[string]interface{})
+				x := s.Index(i)
+				for _, fname := range h.QueryParam.Field {
+					if fname == "id" {
+						fname = "id_e"
+					}
+
+					m[fname] = x.FieldByName(helper.CamelCase(fname)).Interface()
+				}
+				result = append(result, m)
+			}
+			h.Response.Data = result
+		case reflect.Ptr:
+			rm := structs.Map(d)
+			x := make(map[string]interface{})
+			for _, fname := range h.QueryParam.Field {
+				if fname == "id" {
+					fname = "id_e"
+				}
+				kk := helper.CamelCase(fname)
+				if _, ok := rm[kk]; ok {
+					x[fname] = rm[kk]
+				}
+			}
+
+			h.Response.Data = x
+		}
+	}
+}
+
+func (q *QueryParam) IsEmbed(field string) bool {
+	for _, a := range q.Embed {
+		if a == field {
+			return true
+		}
+	}
+	return false
+}
+
+func (h *Handler) SetCreated(d interface{}) {
+	h.Response.SetCode(response.StatusCreated)
+	h.Response.SetData(d)
+}
+
+func SetResponseMessage(err string) {
+	ApiHandler.Response.SetCode(response.StatusBadRequest)
+	ApiHandler.Response.Message = err
 }
 
 func SetHandler(res ResponseHandler) {
