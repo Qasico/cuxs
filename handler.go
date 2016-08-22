@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strconv"
 	"reflect"
+	"errors"
 )
 
 type(
@@ -43,6 +44,8 @@ var ApiHandler *Handler
 
 func (h *Handler) Prepare(c echo.Context, req RequestHandler) (hr *Handler, err error) {
 	h.Validate = validator.New(&validator.Config{TagName: "validate"})
+	h.Validate.RegisterValidation("encrypted", Validencrypted)
+
 	h.Response = &response.Attribute{Code: response.StatusBadRequest, Status: response.StatusFailed, Message: response.StatusText(response.StatusBadRequest)}
 	h.Context = c
 	h.ResponseHandler = nil
@@ -63,6 +66,21 @@ func (h *Handler) Prepare(c echo.Context, req RequestHandler) (hr *Handler, err 
 	return h, err
 }
 
+func Validencrypted(v *validator.Validate, topStruct reflect.Value, currentStructOrField reflect.Value, field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+	i, err := strconv.Atoi(field.String())
+	if err != nil {
+		return false
+	}
+
+	val := ((0x0000FFFF & i) << 16) + ((0xFFFF0000 & i) >> 16)
+	if val < 1 {
+		return false
+	}
+
+	return true
+}
+
 func (h *Handler) validateRequest(req interface{}) (err error) {
 	if err = h.Validate.Struct(req); err != nil {
 		h.ValidationError(err.(validator.ValidationErrors))
@@ -75,7 +93,7 @@ func (h *Handler) validateRequest(req interface{}) (err error) {
 
 func (r *Handler) ValidationError(errs validator.ValidationErrors) {
 	for _, e := range errs {
-		x := response.ErrorValidation{Field: strings.ToLower(e.Field), Message: e.Tag}
+		x := response.ErrorValidation{Field: helper.SnakeCase(e.Field), Message: e.Tag}
 		r.Response.Errors = append(r.Response.Errors, x)
 	}
 }
@@ -216,18 +234,35 @@ func (h *Handler) FilterResponse() {
 	}
 }
 
-func (q *QueryParam) IsEmbed(field string) bool {
-	for _, a := range q.Embed {
-		if a == field {
-			return true
-		}
-	}
-	return false
-}
-
 func (h *Handler) SetCreated(d interface{}) {
 	h.Response.SetCode(response.StatusCreated)
 	h.Response.SetData(d)
+}
+
+func (h *Handler) Valid(name string, field interface{}, rule string) error {
+	if err := h.Validate.Field(field, rule); err != nil {
+		errs := err.(validator.ValidationErrors)
+		for _, e := range errs {
+			x := response.ErrorValidation{Field: helper.SnakeCase(name), Message: e.Tag}
+			h.Response.Errors = append(h.Response.Errors, x)
+		}
+
+		return errors.New("Validation Failed")
+	}
+
+	return nil
+}
+
+func (q *QueryParam) IsEmbed(field string) bool {
+	if q != nil && len(q.Embed) > 0 {
+		for _, a := range q.Embed {
+			if a == field {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func SetResponseMessage(err string) {
@@ -240,7 +275,7 @@ func SetHandler(res ResponseHandler) {
 }
 
 func SetErrorValidate(field string, message string) {
-	x := response.ErrorValidation{Field: strings.ToLower(field), Message: message}
+	x := response.ErrorValidation{Field: helper.SnakeCase(field), Message: message}
 
 	ApiHandler.Response.Errors = append(ApiHandler.Response.Errors, x)
 }
