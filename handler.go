@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"reflect"
 	"errors"
+	"log"
 )
 
 type(
@@ -189,6 +190,10 @@ func (h *Handler) Serve(err error) error {
 
 			h.FilterResponse()
 		}
+	}
+
+	if Config.Runmode == "dev" && h.Response.Code != response.StatusOK {
+		log.Print(h.Response.Errors, "/n", h.Response.Message)
 	}
 
 	return h.Context.JSON(h.Response.Code, h.Response)
