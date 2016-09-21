@@ -1,21 +1,22 @@
 package cuxs
 
 import (
-	"github.com/labstack/echo"
-	"gopkg.in/go-playground/validator.v8"
-	"github.com/qasico/cuxs/response"
-	"github.com/fatih/structs"
-	"github.com/qasico/cuxs/helper"
-	"strings"
-	"net/http"
-	"fmt"
-	"strconv"
-	"reflect"
 	"errors"
+	"fmt"
 	"log"
+	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
+
+	"github.com/fatih/structs"
+	"github.com/labstack/echo"
+	"github.com/qasico/cuxs/helper"
+	"github.com/qasico/cuxs/response"
+	"gopkg.in/go-playground/validator.v8"
 )
 
-type(
+type (
 	RequestHandler interface{}
 
 	ResponseHandler interface{}
@@ -166,7 +167,7 @@ func (h *Handler) setQueryParam(c echo.Context) {
 	h.QueryParam = qp
 }
 
-func (h *Handler) Serve(err error) error {
+func (h *Handler) GetResponse(err error) (int, interface{}) {
 	// check if errors has contain data
 	if len(h.Response.Errors) > 0 {
 		h.Response.SetCode(response.StatusUnprocessableEntry)
@@ -193,10 +194,10 @@ func (h *Handler) Serve(err error) error {
 	}
 
 	if Config.Runmode == "dev" && h.Response.Code != response.StatusOK {
-		log.Print(h.Response.Errors, "/n", h.Response.Message)
+		log.Print(h.Response.Errors, "\n", h.Response.Message)
 	}
 
-	return h.Context.JSON(h.Response.Code, h.Response)
+	return h.Response.Code, h.Response
 }
 
 func (h *Handler) FilterResponse() {
