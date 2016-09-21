@@ -2,15 +2,15 @@ package cuxs
 
 import (
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/fasthttp"
 	"github.com/qasico/cuxs/log"
 	"github.com/qasico/cuxs/middleware"
-	"github.com/labstack/echo/engine/fasthttp"
 
 	mw "github.com/labstack/echo/middleware"
 )
 
 var (
-	Echo *echo.Echo
+	Echo        *echo.Echo
 	ContentType string = "JSON"
 )
 
@@ -45,7 +45,7 @@ func listRoutes() {
 	log.Infof("%-10s | %-50s | %-100s", "METHOD", "URL PATH", "REQ. HANDLER")
 	log.Infof("------------------------------------------------------------------------------")
 	for _, v := range Echo.Routes() {
-		if v.Path[len(v.Path) - 1:] != "*" {
+		if v.Path[len(v.Path)-1:] != "*" {
 			log.Infof("%-10s | %-50s | %-100s", v.Method, v.Path, v.Handler)
 		}
 	}

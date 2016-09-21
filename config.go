@@ -2,15 +2,15 @@ package cuxs
 
 import (
 	"os"
-	"strconv"
 	"path/filepath"
+	"strconv"
 
 	"github.com/joho/godotenv"
 	"github.com/qasico/cuxs/log"
 )
 
 const (
-	VERSION = "0.0.1"
+	VERSION         = "0.0.1"
 	DEFAULT_RUNMODE = "dev"
 )
 
@@ -71,14 +71,14 @@ func init() {
 	Config.LoadConfig()
 
 	Config.Runmode = Config.getString("APP_RUNMODE", DEFAULT_RUNMODE)
-	Config.ServerName = Config.getString("APP_NAME", "cuxs " + VERSION)
+	Config.ServerName = Config.getString("APP_NAME", "cuxs "+VERSION)
 	Config.ResponseType = Config.getString("APP_RESPONSE_TYPE", "json")
 	Config.JwtHash = Config.getString("APP_JWT_SECRET", "123rty890")
 	Config.RecoverPanic = Config.getBool("APP_RECOVER", true)
 	Config.CopyRequestBody = Config.getBool("APP_CBODY", true)
 	Config.EnableErrorsShow = Config.getBool("APP_DEBUG", false)
 	Config.EnableGzip = Config.getBool("APP_GZIP", true)
-	Config.MaxMemory = Config.getInt("APP_MMEMORY", 1 << 26)
+	Config.MaxMemory = Config.getInt("APP_MMEMORY", 1<<26)
 
 	Config.DatabaseConfig.Engine = Config.getString("DB_ENGINE", "postgres")
 	Config.DatabaseConfig.ServerHost = Config.getString("DB_HOST", "127.0.0.1")

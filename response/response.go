@@ -1,13 +1,13 @@
 package response
 
-type(
+type (
 	Attribute struct {
-		Code    int                        `json:"-"`
-		Status  string                     `json:"status,omitempty"`
-		Message interface{}                `json:"message,omitempty"`
-		Data    interface{}                `json:"data,omitempty"`
-		Total   int64                      `json:"total,omitempty"`
-		Errors  []ErrorValidation          `json:"errors,omitempty"`
+		Code    int               `json:"-"`
+		Status  string            `json:"status,omitempty"`
+		Message interface{}       `json:"message,omitempty"`
+		Data    interface{}       `json:"data,omitempty"`
+		Total   int64             `json:"total,omitempty"`
+		Errors  []ErrorValidation `json:"errors,omitempty"`
 	}
 
 	ErrorValidation struct {

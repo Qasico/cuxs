@@ -6,14 +6,14 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qasico/cuxs/log"
 
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-var Orm  map[string]*gorm.DB
-var DB   *gorm.DB
+var Orm map[string]*gorm.DB
+var DB *gorm.DB
 
 func init() {
 	Orm = make(map[string]*gorm.DB)
@@ -62,4 +62,3 @@ func openConnection(c DatabaseConfig, dbname string) (conn string) {
 func ORM() *gorm.DB {
 	return Orm[Config.DatabaseConfig.DBName]
 }
-

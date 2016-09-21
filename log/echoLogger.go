@@ -1,20 +1,20 @@
 package log
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path"
-	"sync"
-	"time"
-	"bytes"
 	"runtime"
 	"strconv"
-	"encoding/json"
+	"sync"
+	"time"
 
-	"github.com/mattn/go-isatty"
-	"github.com/mattn/go-colorable"
 	"github.com/labstack/gommon/log"
+	"github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 	"github.com/valyala/fasttemplate"
 
 	clr "github.com/labstack/gommon/color"
@@ -31,7 +31,6 @@ type (
 		bufferPool sync.Pool
 		mutex      sync.Mutex
 	}
-
 )
 
 const (
@@ -51,9 +50,9 @@ const (
 )
 
 var (
-	global = New("-")
+	global        = New("-")
 	defaultHeader = "${time_rfc3339} [${level}]"
-	Color = clr.New()
+	Color         = clr.New()
 )
 
 func New(prefix string) (l *EchoLogger) {

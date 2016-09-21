@@ -1,13 +1,14 @@
 package log
 
 import (
-	"time"
-	"fmt"
 	"database/sql/driver"
+	"fmt"
 	"reflect"
 	"regexp"
-	"github.com/jinzhu/gorm"
+	"time"
 	"unicode"
+
+	"github.com/jinzhu/gorm"
 )
 
 var sqlRegexp = regexp.MustCompile(`(\$\d+)|\?`)
@@ -29,7 +30,7 @@ func (logger OrmLogger) Print(values ...interface{}) {
 
 		if level == "sql" {
 			// duration
-			d = fmt.Sprintf("%.2fms", float64(values[2].(time.Duration).Nanoseconds() / 1e4) / 100.0);
+			d = fmt.Sprintf("%.2fms", float64(values[2].(time.Duration).Nanoseconds()/1e4)/100.0)
 
 			// sql
 			var formattedValues []string

@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"fmt"
-	"time"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo"
 	"github.com/qasico/cuxs/log"
@@ -41,11 +41,11 @@ func getCode(code int) string {
 	switch {
 	case code >= 200 && code < 300:
 
-		return log.Color.GreenBg(" " + strconv.Itoa(code) + " ", "1")
+		return log.Color.GreenBg(" "+strconv.Itoa(code)+" ", "1")
 	case code >= 300 && code < 400:
-		return log.Color.YellowBg(" " + strconv.Itoa(code) + " ", "1")
+		return log.Color.YellowBg(" "+strconv.Itoa(code)+" ", "1")
 	default:
-		return log.Color.RedBg(" " + strconv.Itoa(code) + " ", "1")
+		return log.Color.RedBg(" "+strconv.Itoa(code)+" ", "1")
 	}
 }
 

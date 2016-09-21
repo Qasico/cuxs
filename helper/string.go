@@ -1,9 +1,9 @@
 package helper
 
 import (
-	"unicode"
-	"strings"
 	"regexp"
+	"strings"
+	"unicode"
 )
 
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
@@ -16,7 +16,7 @@ func SnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-func CamelCase(s string) (string) {
+func CamelCase(s string) string {
 	var result string
 
 	words := strings.Split(s, "_")
