@@ -101,7 +101,7 @@ func (r *Handler) ValidationError(errs validator.ValidationErrors) {
 }
 
 func (h *Handler) requestKeys(i interface{}) {
-	var objmap map[string]string
+	var objmap map[string]interface{}
 
 	rm := structs.Map(i)
 	h.Context.Bind(&objmap)
