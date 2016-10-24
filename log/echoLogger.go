@@ -190,17 +190,17 @@ func (l *EchoLogger) Errorj(j log.JSON) {
 }
 
 func (l *EchoLogger) Fatal(i ...interface{}) {
-	l.log(log.FATAL, "", i...)
+	l.log(log.ERROR, "", i...)
 	os.Exit(1)
 }
 
 func (l *EchoLogger) Fatalf(format string, args ...interface{}) {
-	l.log(log.FATAL, format, args...)
+	l.log(log.ERROR, format, args...)
 	os.Exit(1)
 }
 
 func (l *EchoLogger) Fatalj(j log.JSON) {
-	l.log(log.FATAL, "json", j)
+	l.log(log.ERROR, "json", j)
 }
 
 func DisableColor() {
